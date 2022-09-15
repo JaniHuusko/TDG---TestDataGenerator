@@ -48,7 +48,7 @@ namespace GenericTestDataCreator.Logic
                 }
                 catch (SqlException)
                 {
-                    throw new Exception($"Statement {statement} failed to save.");
+                    throw new Exception($"Statement\n{statement}\nfailed to save.");
                 }
 
                 tableIndex++;
