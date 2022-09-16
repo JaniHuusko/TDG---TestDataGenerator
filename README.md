@@ -16,6 +16,7 @@ Current accepted column types:
     int
     bigint
     float
+    decimal
     date
     datetime
     datetime2
