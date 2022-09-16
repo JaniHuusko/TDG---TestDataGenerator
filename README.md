@@ -33,6 +33,9 @@ Theres only ConsoleUI for now, but there is an idea for an UI where you could co
         how many rows of data is needed to fullfill these combinations.
     3.  Add more values that are possible to insert in SQL table.
     4.  Add other possible database schemas for example using mongoDB or cosmosDB.
+    5.  Currently I've been able to add 100k rows easily under a minute and 1 million rows to a row without relations, but 
+        Visua studio crashes if trying to add 1 million rows to a row with relations, so if there is some optimization ideas
+        on how to add 1 million rows to relations and even for all rows, would be cool but im pretty satisfied with 100k rows.
 
 
 # Contribute
