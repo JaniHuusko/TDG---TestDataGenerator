@@ -21,7 +21,6 @@ namespace GenericTestDataCreator
            
             var dataGenerationLogic = new DataGenerationLogic();
             var queryLogic = new QueryLogic(dataGenerationLogic);
-            var saveLogic = new SaveLogic();
             bool success = false;
 
             while (success != true)
