@@ -66,7 +66,7 @@ namespace GenericTestDataCreator
                     aTimer.Start();
                     request.DataRowCount = rowCount;
                     var tables = queryLogic.CreateRows(request);
-                    saveLogic.SaveData(tables, rowCount, request.ConnectionString);
+                    SaveLogic.SaveData(tables, rowCount, request.ConnectionString);
                     Console.WriteLine();
                     Console.WriteLine($"Successfully created {rowCount} rows to the database.");
                     success = true;

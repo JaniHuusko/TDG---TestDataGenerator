@@ -13,7 +13,7 @@ namespace GenericTestDataCreator.Logic
     public class SaveLogic
     {
         private static readonly Random random = new();
-        public void SaveData(List<ExportTable> tables, int rowCount, string connectionString)
+        public static void SaveData(List<ExportTable> tables, int rowCount, string connectionString)
         {
             var sqlStatements = new List<string>();
 
@@ -119,7 +119,7 @@ namespace GenericTestDataCreator.Logic
             return sqlString.ToString();
         }
 
-        private void SaveForeignKeyTables(List<ExportTable> tables, int rowCount, string connectionString)
+        private static void SaveForeignKeyTables(List<ExportTable> tables, int rowCount, string connectionString)
         {
             bool isNullableAdded = false;
             foreach (var table in tables)
@@ -151,7 +151,7 @@ namespace GenericTestDataCreator.Logic
             }
         }
 
-        private List<int?> GetForeignKeys(ForeignKeyInfo foreignKeyInfo, string connectionString)
+        private static List<int?> GetForeignKeys(ForeignKeyInfo foreignKeyInfo, string connectionString)
         {
             var keyList = new List<int?>();
             using SqlConnection connection = new(connectionString);

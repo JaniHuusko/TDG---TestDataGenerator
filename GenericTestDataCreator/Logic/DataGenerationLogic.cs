@@ -84,6 +84,7 @@ namespace GenericTestDataCreator
                             value = CreateIntegerColumn(column);
                             break;
                         case "float":
+                        case "decimal":
                             value = CreateFloatColumn(column);
                             break;
                         case "date":
@@ -159,11 +160,23 @@ namespace GenericTestDataCreator
                 value = "null";
                 IsNullableAdded = true;
             }
-
-            int randomFloatPool = random.Next(1, 3);
+            int randomFloatPool = 1;
+            switch (column.Type)
+            {
+                case "float":
+                    randomFloatPool = random.Next(1, 3);
+                    break;
+                case "decimal":
+                    randomFloatPool = random.Next(1, 4);
+                    break;
+                default:
+                    break;
+            }
+            
             if (randomFloatPool == 1) value = random.Next(1, 99).ToString();
             if (randomFloatPool == 2) value = random.Next(1, 32767).ToString();
             if (randomFloatPool == 3) value = random.Next(1, 8388607).ToString();
+            if (randomFloatPool == 3) value = random.Next(1, int.MaxValue).ToString();
 
             int randomDecimalPool = random.Next(0, 3);
 
