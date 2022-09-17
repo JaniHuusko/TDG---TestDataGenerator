@@ -7,10 +7,10 @@ namespace GenericTestDataCreator
 {
     public class DataGenerationLogic
     {
-        string longString = "Longest string ";
         string? shortString = null;
-        int? bigInt = null;
+        string longString = "Longest string ";
         int? smallInt = null;
+        long? bigInt = null;
         bool IsNullableAdded;
 
         private static readonly Random random = new();
@@ -197,7 +197,17 @@ namespace GenericTestDataCreator
 
             if (bigInt == null)
             {
-                bigInt = int.MaxValue;
+                switch (column.Type)
+                {
+                    case "tinyint": bigInt = 127; break;
+                    case "smallint": bigInt = 32767; break;
+                    case "mediumint": bigInt = 8388607; break;
+                    case "int": bigInt = int.MaxValue; break;
+                    case "bigint": bigInt = long.MaxValue; break;
+                    default:
+                        break;
+                }
+                
                 value = bigInt.ToString();
 
                 return value;

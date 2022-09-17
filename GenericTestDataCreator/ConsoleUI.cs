@@ -28,9 +28,9 @@ namespace GenericTestDataCreator
                 Console.WriteLine("Insert connection string:");
                 string? input = Console.ReadLine();
 
-                if (input == null)
+                if (input == null || input == String.Empty)
                 {
-                    Console.WriteLine("Connection string cant be null.");
+                    Console.WriteLine("Connection string cant be empty.");
                     continue;
                 }
 
