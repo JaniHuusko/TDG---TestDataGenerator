@@ -183,5 +183,22 @@ namespace GenericTestDataCreator.Logic
 
             return returnTables;
         }
+        public static List<int?> GetForeignKeys(ForeignKeyInfo foreignKeyInfo, string connectionString)
+        {
+            var keyList = new List<int?>();
+            using SqlConnection connection = new(connectionString);
+            connection.Open();
+            {
+                using SqlCommand sqlCommand = new($"SELECT {foreignKeyInfo.ColumnName} FROM {foreignKeyInfo.TableName}", connection);
+                using SqlDataReader reader = sqlCommand.ExecuteReader();
+                while (reader.Read())
+                {
+                    keyList.Add((int)reader[foreignKeyInfo.ColumnName]);
+                }
+            }
+            connection.Close();
+
+            return keyList;
+        }
     }
 }

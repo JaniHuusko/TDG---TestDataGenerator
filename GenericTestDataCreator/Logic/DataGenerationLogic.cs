@@ -265,7 +265,7 @@ namespace GenericTestDataCreator
 
             if (longString == "Longest string ")
             {
-                longString = $"{longString}{GenerateRandomString(2000, 8000, 5, 20, 10)}";
+                longString = $"{longString}{GenerateRandomString(4000, 8000, 5, 20, 10)}";
 
                 value = longString;
 

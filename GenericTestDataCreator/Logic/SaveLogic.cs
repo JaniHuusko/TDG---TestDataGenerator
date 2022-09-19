@@ -13,6 +13,7 @@ namespace GenericTestDataCreator.Logic
     public class SaveLogic
     {
         private static readonly Random random = new();
+
         public static void SaveData(List<ExportTable> tables, int rowCount, string connectionString)
         {
             var sqlStatements = new List<string>();
@@ -130,7 +131,7 @@ namespace GenericTestDataCreator.Logic
                     // Here could be implemented configuration for one to one or one to many relations.
                     if (column.ForeignKeyInfo != null)
                     {
-                        var foreignKeyList = GetForeignKeys(column.ForeignKeyInfo, connectionString);
+                        var foreignKeyList = QueryLogic.GetForeignKeys(column.ForeignKeyInfo, connectionString);
 
                         for (int i = 0; i < rowCount; i++)
                         {
@@ -140,7 +141,7 @@ namespace GenericTestDataCreator.Logic
                                 column.Values.Add("null");
                                 continue;
                             }
-                            int index = random.Next(foreignKeyList.Count());
+                            int index = random.Next(foreignKeyList.Count);
                             column.Values.Add(foreignKeyList[index].ToString() ?? "null");
                         }
                     }
@@ -151,22 +152,6 @@ namespace GenericTestDataCreator.Logic
             }
         }
 
-        private static List<int?> GetForeignKeys(ForeignKeyInfo foreignKeyInfo, string connectionString)
-        {
-            var keyList = new List<int?>();
-            using SqlConnection connection = new(connectionString);
-            connection.Open();
-            {
-                using SqlCommand sqlCommand = new($"SELECT {foreignKeyInfo.ColumnName} FROM {foreignKeyInfo.TableName}", connection);
-                using SqlDataReader reader = sqlCommand.ExecuteReader();
-                while (reader.Read())
-                {
-                    keyList.Add((int)reader[foreignKeyInfo.ColumnName]);
-                }
-            }
-            connection.Close();
-
-            return keyList;
-        }
+        
     }
 }
