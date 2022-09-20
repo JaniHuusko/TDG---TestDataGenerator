@@ -44,6 +44,8 @@ Theres only ConsoleUI for now, but there is an idea for an UI where you could co
         on how to add 1 million rows to relations and even for all rows, would be cool but im pretty satisfied with 100k rows.
     6.  Create UI property where you can first read the test data that was generated and pick the data you want to remove 
         from the data and an AI that can calculate which kind of data user wants to remove and makes suggestions for it.
+    7.  Security questions on using the app, if it was for example a web page, how can we secure that the given connection
+        string is safe to enter to the web page?
 
 
 # Contribute
