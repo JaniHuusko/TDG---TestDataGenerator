@@ -34,7 +34,7 @@ namespace GenericTestDataCreator
                     continue;
                 }
 
-                DataGenerationRequest request = new() { ConnectionString = input, Tables = QueryLogic.GetTables(input).Where(t => t.Name != "sysdiagrams").ToList() };
+                DataGenerationRequest request = new() { ConnectionString = input, Tables = QueryLogic.GetTables(input).ToList() };
 
                 Console.WriteLine("Current tables:");
                 foreach (var table in request.Tables)

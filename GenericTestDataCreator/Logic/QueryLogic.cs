@@ -149,9 +149,12 @@ namespace GenericTestDataCreator.Logic
                 connection.Open();
                 using (SqlCommand command = new("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES", connection))
                 {
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using SqlDataReader reader = command.ExecuteReader();
+
+                    while (reader.Read())
                     {
-                        while (reader.Read())
+                        string tableName = (string)reader["TABLE_NAME"];
+                        if (tableName != "database_firewall_rules" && tableName != "sysdiagrams")
                         {
                             tableNames.Add((string)reader["TABLE_NAME"]);
                         }
