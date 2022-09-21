@@ -153,6 +153,10 @@ namespace GenericTestDataCreator.Logic
                     while (reader.Read())
                     {
                         string tableName = (string)reader["TABLE_NAME"];
+
+                        /* instead of these checks, should this be done by checking the type of the column on the query, because there might
+                        be even more tables appearing from the system ro azure at some point if you add things to your database or is there 
+                        that possibility? */
                         if (tableName != "database_firewall_rules" && tableName != "sysdiagrams")
                         {
                             tableNames.Add((string)reader["TABLE_NAME"]);
