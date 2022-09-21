@@ -5,10 +5,9 @@ namespace GenericTestDataCreator
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
-            var console = new ConsoleUI();
-            console.GenerateDataQuery();
+            ConsoleUI.GenerateDataQuery();
         }
     }
 }

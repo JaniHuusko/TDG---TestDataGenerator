@@ -1,4 +1,5 @@
-﻿using System.Data.SqlClient;
+﻿using System.Data;
+using System.Data.SqlClient;
 using GenericTestDataCreator.Models;
 
 namespace GenericTestDataCreator.Logic
@@ -14,8 +15,8 @@ namespace GenericTestDataCreator.Logic
 
         public static List<ImportTable> GetTables(string connectionString)
         {
-            var tables = new List<ImportTable>();
-            using SqlConnection connection = new SqlConnection(connectionString);
+            List<ImportTable> tables = new();
+            using SqlConnection connection = new(connectionString);
 
             // first connection in try catch.
             try
@@ -107,7 +108,7 @@ namespace GenericTestDataCreator.Logic
             using SqlConnection connection = new(request.ConnectionString);
             connection.Open();
 
-            using (SqlCommand command2 = new(@"SELECT 
+            using SqlCommand command2 = new(@"SELECT 
                                              KCU1.TABLE_NAME AS 'FK_TABLE_NAME',
                                              KCU1.COLUMN_NAME AS 'FK_COLUMN_NAME',
                                              KCU2.TABLE_NAME AS 'UQ_TABLE_NAME',
@@ -123,22 +124,20 @@ namespace GenericTestDataCreator.Logic
                                              AND KCU2.CONSTRAINT_SCHEMA = 
                                              RC.UNIQUE_CONSTRAINT_SCHEMA
                                              AND KCU2.CONSTRAINT_NAME = 
-                                             RC.UNIQUE_CONSTRAINT_NAME", connection))
+                                             RC.UNIQUE_CONSTRAINT_NAME", connection);
+            using SqlDataReader reader = command2.ExecuteReader();
+            while (reader.Read())
             {
-                using SqlDataReader reader = command2.ExecuteReader();
-                while (reader.Read())
+                if (request.Tables.Where(t => t.Name == (string)reader["FK_TABLE_NAME"]).FirstOrDefault() != null)
                 {
-                    if (request.Tables.Where(t => t.Name == (string)reader["FK_TABLE_NAME"]).FirstOrDefault() != null)
-                    {
-                        var table = request.Tables.Where(t => t.Name == (string)reader["FK_TABLE_NAME"]).First();
-                        table.ForeignKeyCount++;
-                        var column = table.Columns.Where(c => c.Name == (string)reader["FK_COLUMN_NAME"]).First();
-                        column.ForeignKeyInfo = new ForeignKeyInfo { TableName = (string)reader["UQ_TABLE_NAME"], ColumnName = (string)reader["UQ_COLUMN_NAME"] };
-                    }
+                    var table = request.Tables.Where(t => t.Name == (string)reader["FK_TABLE_NAME"]).First();
+                    table.ForeignKeyCount++;
+                    var column = table.Columns.Where(c => c.Name == (string)reader["FK_COLUMN_NAME"]).First();
+                    column.ForeignKeyInfo = new ForeignKeyInfo { TableName = (string)reader["UQ_TABLE_NAME"], ColumnName = (string)reader["UQ_COLUMN_NAME"] };
                 }
-                connection.Close();
-                return request.Tables;
             }
+            connection.Close();
+            return request.Tables;
         }
 
         private static List<string> GetAllTableNamesFromDatabase(string connectionString)
@@ -186,6 +185,7 @@ namespace GenericTestDataCreator.Logic
 
             return returnTables;
         }
+
         public static List<int?> GetForeignKeys(ForeignKeyInfo foreignKeyInfo, string connectionString)
         {
             var keyList = new List<int?>();

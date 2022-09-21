@@ -4,7 +4,6 @@ Generates test data to sql database with connection string.
 # Use cases
 1. Create test data for your project quickly and efficiently.
 2. Test your projects performance with high amounts of data, or compare different solutions.
-3. 
 
 # Getting Started
 Currently you can insert data to one or all tables with the specified row count. works fine to at least 100k rows with 6 tables,
@@ -33,7 +32,7 @@ Theres only ConsoleUI for now, but there is an idea for an UI where you could co
 
 # Ideas how to move forward
     1.  Create UI where you can configure the values e.g. datetime in future or past, any int as enum, 
-        booleans that cant be true without conditions, insert string library to use..
+        booleans that cant be true without conditions, insert string or photo etc. library to use..
     2.  Figure a way to insert all the possible scenarios with booleans in schema e.g. db has 10 different booleans so this
         creates test data that has all the possible combinations of these booleans, also maybe needs somekind of knowledge about
         how many rows of data is needed to fullfill these combinations.
@@ -46,8 +45,16 @@ Theres only ConsoleUI for now, but there is an idea for an UI where you could co
         from the data and an AI that can calculate which kind of data user wants to remove and makes suggestions for it.
     7.  Security questions on using the app, if it was for example a web page, how can we secure that the given connection
         string is safe to enter to the web page?
+    8.  Add functionality where you can revert last database input or clean the database completely.
 
 
 # Contribute
 If you have more ideas or just need some quick test data, please try it and give feedback. You can also just copy the repo 
 and if you come up with an idea to improve you can create your own branch, implement changes and create a PR for main.
+
+# Other ideas
+1. After UI is implemented could it be possible to use the generated data for test automations in pipelines to run every action 
+in the application there is to secure there are no new bugs coming from production?
+
+# Current bugs
+1. Doesnt work if there are many string columns with high max value in one table or if there are over 100k rows, VS crashes.

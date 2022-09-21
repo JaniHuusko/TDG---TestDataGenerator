@@ -1,12 +1,7 @@
 ﻿using GenericTestDataCreator.Models;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Data.SqlClient;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace GenericTestDataCreator.Logic
 {
@@ -16,15 +11,27 @@ namespace GenericTestDataCreator.Logic
 
         public static void SaveData(List<ExportTable> tables, int rowCount, string connectionString)
         {
-            var sqlStatements = new List<string>();
-
-            foreach (var table in tables.Where(t => t.ForeignKeyCount == 0))
+            List<string> sqlStatements = new();
+            if (rowCount > 50000)
             {
-                string sqlString = GenerateSqlString(table, rowCount);
-                sqlStatements.Add(sqlString);
+                SqlConnection connection = new SqlConnection(connectionString);
+                foreach (var table in tables.Where(t => t.ForeignKeyCount == 0))
+                {
+                    string sqlStatement = GenerateSqlString(table, rowCount);
+                    connection.Open();
+                    SaveStatementToDataBase(GenerateSqlString(table, rowCount), connection);
+                    connection.Close();
+                }
+            }
+            else
+            {
+                foreach (var table in tables.Where(t => t.ForeignKeyCount == 0))
+                {
+                    sqlStatements.Add(GenerateSqlString(table, rowCount));
+                }
+                SaveStatementsToDataBase(sqlStatements, connectionString);
             }
 
-            SaveStatementsToDataBase(sqlStatements, connectionString);
 
             if (tables.Any(t => t.ForeignKeyCount > 0))
             {
@@ -35,33 +42,34 @@ namespace GenericTestDataCreator.Logic
         
         private static void SaveStatementsToDataBase(IEnumerable<string> sqlStatements, string connectionString)
         {
-            int tableIndex = 0;
             using SqlConnection connection = new(connectionString);
             connection.Open();
 
             foreach (var statement in sqlStatements)
             {
-
-                using SqlCommand command = new(statement, connection);
-                try
-                {
-                    int recordsAffected = command.ExecuteNonQuery();
-                }
-                catch (SqlException)
-                {
-                    throw new Exception($"Statement\n{statement}\nfailed to save.");
-                }
-
-                tableIndex++;
+                SaveStatementToDataBase(statement, connection);
             }
 
             connection.Close();
         }
 
-        private static string GenerateSqlString(ExportTable table, int rowCount)
+        private static void SaveStatementToDataBase(string statement, SqlConnection connection)
         {
-            var sqlString = new StringBuilder();
-            var sqlColumnsRow = new StringBuilder(@$"INSERT INTO {table.Name} (");
+            using SqlCommand command = new(statement, connection);
+            try
+            {
+                int recordsAffected = command.ExecuteNonQuery();
+            }
+            catch (SqlException)
+            {
+                throw new Exception($"Statement\n{statement}\nfailed to save.");
+            }
+        }
+
+        private static string GenerateSqlString(ExportTable table, int rowsToAdd)
+        {
+            StringBuilder sqlStatement = new();
+            StringBuilder sqlColumnsRow = new(@$"INSERT INTO {table.Name} (");
 
             foreach (var columnName in table.Columns.Select(c => c.Name))
             {
@@ -73,31 +81,32 @@ namespace GenericTestDataCreator.Logic
                 else
                 {
                     sqlColumnsRow.Append(")\nVALUES");
-                    sqlString.Append(sqlColumnsRow);
+                    sqlStatement.Append(sqlColumnsRow);
                 }
             }
 
             int rowLimit = 999;
 
-            for (int i = 0; i < rowCount; i++)
+            for (int rowCount = 0; rowCount < rowsToAdd; rowCount++)
             {
-                if (i > rowLimit)
+                if (rowCount > rowLimit)
                 {
-                    sqlString.Remove(sqlString.Length - 2, 1);
+                    // Removes comma from the end of the sql row and start new insert if rowcount is maxed.
+                    sqlStatement.Remove(sqlStatement.Length - 2, 1);
                     rowLimit += 999;
-                    sqlString.Append(sqlColumnsRow);
+                    sqlStatement.Append(sqlColumnsRow);
 
                 }
-                var sqlValuesRow = new StringBuilder("(");
+                StringBuilder sqlValuesRow = new("(");
                 foreach (var column in table.Columns)
                 {
-                    if (column.Values[i] == "null")
+                    if (column.Values[rowCount] == "null")
                     {
                         sqlValuesRow.Append("null");
                     }
                     else
                     {
-                        sqlValuesRow.Append($"'{column.Values[i]}'");
+                        sqlValuesRow.Append($"'{column.Values[rowCount]}'");
                     }
 
                     if (column.Name != table.Columns.Last().Name)
@@ -109,29 +118,31 @@ namespace GenericTestDataCreator.Logic
                         sqlValuesRow.Append(')');
                     }
                 }
-                if (i != rowCount - 1)
+
+                if (rowCount != rowsToAdd - 1)
                 {
                     sqlValuesRow.Append(",\n");
                 }
-               
-                sqlString.Append(sqlValuesRow);
+
+                sqlStatement.Append(sqlValuesRow);
             }
 
-            return sqlString.ToString();
+            return sqlStatement.ToString();
         }
 
         private static void SaveForeignKeyTables(List<ExportTable> tables, int rowCount, string connectionString)
         {
             bool isNullableAdded = false;
+            SqlConnection connection = new(connectionString);
+
             foreach (var table in tables)
             {
-                var sqlStatements = new List<string>();
                 foreach (var column in table.Columns)
                 {
                     // Here could be implemented configuration for one to one or one to many relations.
                     if (column.ForeignKeyInfo != null)
                     {
-                        var foreignKeyList = QueryLogic.GetForeignKeys(column.ForeignKeyInfo, connectionString);
+                        List<int?> foreignKeyList = QueryLogic.GetForeignKeys(column.ForeignKeyInfo, connectionString);
 
                         for (int i = 0; i < rowCount; i++)
                         {
@@ -146,9 +157,11 @@ namespace GenericTestDataCreator.Logic
                         }
                     }
                 }
-                string sqlString = GenerateSqlString(table, rowCount);
-                sqlStatements.Add(sqlString);
-                SaveStatementsToDataBase(sqlStatements, connectionString);
+                string sqlStatement = GenerateSqlString(table, rowCount);
+
+                connection.Open();
+                SaveStatementToDataBase(sqlStatement, connection);
+                connection.Close();
             }
         }
 

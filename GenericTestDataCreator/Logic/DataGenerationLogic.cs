@@ -1,6 +1,4 @@
 ﻿using GenericTestDataCreator.Models;
-using System;
-using System.Data.Common;
 using System.Text;
 
 namespace GenericTestDataCreator
@@ -9,15 +7,15 @@ namespace GenericTestDataCreator
     {
         string? shortString = null;
         string longString = "Longest string ";
-        int? smallInt = null;
-        long? bigInt = null;
+        int? smallInteger = null;
+        long? bigInteger = null;
         bool IsNullableAdded;
 
         private static readonly Random random = new();
 
         public List<ExportTable> GenerateData(DataGenerationRequest request)
         {
-            var exportTables = new List<ExportTable>();
+            List<ExportTable> exportTables = new();
 
             foreach (var table in request.Tables)
             {
@@ -29,18 +27,19 @@ namespace GenericTestDataCreator
 
         public ExportTable GenerateTable(ImportTable importTable, int? dataRowCount)
         {
-            var exportTable = new ExportTable { Name = importTable.Name };
-            var columnList = new List<string>();
+            ExportTable exportTable = new() { Name = importTable.Name };
+            List<string> columnNames = new();
+
             foreach (var column in importTable.Columns.Where(c => c.IsIdentity != true && c.IsComputed != true))
             {
-                columnList.Add(column.Name);
+                columnNames.Add(column.Name);
             }
 
-            columnList = columnList.Distinct().ToList();
+            columnNames = columnNames.Distinct().ToList();
 
-            foreach (var item in columnList)
+            foreach (var columnName in columnNames)
             {
-                exportTable.Columns.Add(new ExportColumn { Name = item, Values = new List<string?>() });
+                exportTable.Columns.Add(new() { Name = columnName });
             }
 
             foreach (var column in importTable.Columns.Where(c => c.IsIdentity != true && c.IsComputed != true))
@@ -52,6 +51,7 @@ namespace GenericTestDataCreator
                     exportTable.ForeignKeyCount = importTable.ForeignKeyCount;
                     continue;
                 }
+
                 for (int i = 0; i < dataRowCount; i++)
                 {
                     string? value = string.Empty;
@@ -107,8 +107,8 @@ namespace GenericTestDataCreator
 
                 longString = "Longest string ";
                 shortString = null;
-                bigInt = null;
-                smallInt = null;
+                bigInteger = null;
+                smallInteger = null;
                 IsNullableAdded = false;
             }
 
@@ -130,11 +130,13 @@ namespace GenericTestDataCreator
                 IsNullableAdded = true;
                 return value;
             }
-            var endDate = new DateTime(2070, 12, 31);
-            var startDate = new DateTime(1950, 1, 1);
+
+            DateTime endDate = new(2070, 12, 31);
+            DateTime startDate = new(1950, 1, 1);
             TimeSpan timeSpan = endDate - startDate;
-            TimeSpan newSpan = new TimeSpan(0, random.Next(0, (int)timeSpan.TotalMinutes), 0);
+            TimeSpan newSpan = new(0, random.Next(0, (int)timeSpan.TotalMinutes), 0);
             DateTime newDate = startDate + newSpan;
+
             switch (column.Type)
             {
                 case "date":
@@ -148,6 +150,7 @@ namespace GenericTestDataCreator
                 default:
                     break;
             }
+
             return value;
         }
 
@@ -160,23 +163,23 @@ namespace GenericTestDataCreator
                 value = "null";
                 IsNullableAdded = true;
             }
-            int randomFloatPool = 1;
+            int randomIntegerPool = 1;
             switch (column.Type)
             {
                 case "float":
-                    randomFloatPool = random.Next(1, 3);
+                    randomIntegerPool = random.Next(1, 3);
                     break;
                 case "decimal":
-                    randomFloatPool = random.Next(1, 4);
+                    randomIntegerPool = random.Next(1, 4);
                     break;
                 default:
                     break;
             }
             
-            if (randomFloatPool == 1) value = random.Next(1, 99).ToString();
-            if (randomFloatPool == 2) value = random.Next(1, 32767).ToString();
-            if (randomFloatPool == 3) value = random.Next(1, 8388607).ToString();
-            if (randomFloatPool == 3) value = random.Next(1, int.MaxValue).ToString();
+            if (randomIntegerPool == 1) value = random.Next(1, 99).ToString();
+            if (randomIntegerPool == 2) value = random.Next(1, 32767).ToString();
+            if (randomIntegerPool == 3) value = random.Next(1, 8388607).ToString();
+            if (randomIntegerPool == 3) value = random.Next(1, int.MaxValue).ToString();
 
             int randomDecimalPool = random.Next(0, 3);
 
@@ -195,27 +198,27 @@ namespace GenericTestDataCreator
         {
             string? value = string.Empty;
 
-            if (bigInt == null)
+            if (bigInteger == null)
             {
                 switch (column.Type)
                 {
-                    case "tinyint": bigInt = 127; break;
-                    case "smallint": bigInt = 32767; break;
-                    case "mediumint": bigInt = 8388607; break;
-                    case "int": bigInt = int.MaxValue; break;
-                    case "bigint": bigInt = long.MaxValue; break;
+                    case "tinyint": bigInteger = 127; break;
+                    case "smallint": bigInteger = 32767; break;
+                    case "mediumint": bigInteger = 8388607; break;
+                    case "int": bigInteger = int.MaxValue; break;
+                    case "bigint": bigInteger = long.MaxValue; break;
                     default:
                         break;
                 }
                 
-                value = bigInt.ToString();
+                value = bigInteger.ToString();
 
                 return value;
             }
-            else if (smallInt == null)
+            else if (smallInteger == null)
             {
-                smallInt = 1;
-                value = smallInt.ToString();
+                smallInteger = 1;
+                value = smallInteger.ToString();
 
                 return value;
             }
@@ -228,6 +231,7 @@ namespace GenericTestDataCreator
             }
 
             int randomIntPool = 1;
+
             switch (column.Type)
             {
                 case "tinyint": break;
@@ -250,7 +254,8 @@ namespace GenericTestDataCreator
 
         private string? CreateStringColumn(ImportColumn column)
         {
-            int maxLength = 0;
+            int maxLength;
+            string value = "";
 
             if (column.Type == "nvarchar")
             {
@@ -261,7 +266,7 @@ namespace GenericTestDataCreator
                 maxLength = column.MaxLength;
             }
 
-            string value = "";
+            
 
             if (longString == "Longest string ")
             {
@@ -283,6 +288,7 @@ namespace GenericTestDataCreator
             else
             {
                 int randomStringPool = 1;
+
                 switch (maxLength)
                 {
                     case < 20:
@@ -333,33 +339,33 @@ namespace GenericTestDataCreator
             return value;
         }
 
-        private static string GenerateRandomString(int minWords, int maxWords, int minSentences, int maxSentences, int numLines)
+        private static string GenerateRandomString(int minWords, int maxWords, int minSentences, int maxSentences, int numberOfLines)
         {
             var words = new[] { "lorem", "ipsum", "dolor", "sit", "amet", "consectetuer", "adipiscing", "elit", 
                                 "sed", "diam", "nonummy", "nibh", "euismod", "tincidunt", "ut", "laoreet", "dolore", 
                                 "magna", "aliquam", "erat" };
 
-            int numSentences = random.Next(maxSentences - minSentences)
+            int numberOfSentences = random.Next(maxSentences - minSentences)
                 + minSentences;
             int numWords = random.Next(maxWords - minWords) + minWords;
 
-            var sb = new StringBuilder();
-            for (int p = 0; p < numLines; p++)
+            StringBuilder stringBuilder = new();
+            for (int paragraphCount = 0; paragraphCount < numberOfLines; paragraphCount++)
             {
-                for (int s = 0; s < numSentences; s++)
+                for (int sentenceCount = 0; sentenceCount < numberOfSentences; sentenceCount++)
                 {
-                    for (int w = 0; w < numWords; w++)
+                    for (int wordCount = 0; wordCount < numWords; wordCount++)
                     {
-                        if (w > 0) { sb.Append(' '); }
+                        if (wordCount > 0) { stringBuilder.Append(' '); }
                         string word = words[random.Next(words.Length)];
-                        if (w == 0) { word = string.Concat(word.Substring(0, 1).Trim().ToUpper(), word.AsSpan(1)); }
-                        sb.Append(word);
+                        if (wordCount == 0) { word = string.Concat(word[..1].Trim().ToUpper(), word.AsSpan(1)); }
+                        stringBuilder.Append(word);
                     }
-                    sb.Append(". ");
+                    stringBuilder.Append(". ");
                 }
-                if (p < numLines - 1) sb.AppendLine();
+                if (paragraphCount < numberOfLines - 1) stringBuilder.AppendLine();
             }
-            return sb.ToString();
+            return stringBuilder.ToString();
         }
     }
 }
