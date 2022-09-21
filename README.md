@@ -53,8 +53,8 @@ If you have more ideas or just need some quick test data, please try it and give
 and if you come up with an idea to improve you can create your own branch, implement changes and create a PR for main.
 
 # Other ideas
-1. After UI is implemented could it be possible to use the generated data for test automations in pipelines to run every action 
-in the application there is to secure there are no new bugs coming from production?
+1. Could it be possible to use generated and configured test data to be used in the application lifecycle through the whole
+process including development, all kind of testing and presentation of the app?
 
 # Current bugs
 1. Doesnt work if there are many string columns with high max value in one table or if there are over 100k rows, VS crashes.
