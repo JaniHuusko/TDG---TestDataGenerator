@@ -46,6 +46,9 @@ Theres only ConsoleUI for now, but there is an idea for an UI where you could co
     7.  Security questions on using the app, if it was for example a web page, how can we secure that the given connection
         string is safe to enter to the web page?
     8.  Add functionality where you can revert last database input or clean the database completely.
+    9.  Anonymizer for customer data, that anonymizes the real database as test data.
+    10. Create library as a nugget package that you can easily use in for example unit tests, that takes note of all permutations.
+        Check ref. Bogus. https://github.com/nickdodd79/AutoBogus
 
 
 # Contribute
