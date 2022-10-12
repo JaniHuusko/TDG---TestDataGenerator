@@ -1,5 +1,4 @@
 ﻿using GenericTestDataCreator.Models;
-using GenericTestDataCreator.Services;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text;
@@ -105,10 +104,6 @@ namespace GenericTestDataCreator.Logic
                     {
                         sqlValuesRow.Append("null");
                     }
-                    //else if(column.Type == "decimal" || column.Type == "float")
-                    //{
-                    //    sqlValuesRow.Append($"{column.Values[rowCount]}");
-                    //}
                     else
                     {
                         sqlValuesRow.Append($"'{column.Values[rowCount]}'");
@@ -169,5 +164,7 @@ namespace GenericTestDataCreator.Logic
                 connection.Close();
             }
         }
+
+        
     }
 }

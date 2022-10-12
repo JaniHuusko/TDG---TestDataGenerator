@@ -17,7 +17,7 @@ namespace GenericTestDataCreator
         {
             List<ExportTable> exportTables = new();
 
-            foreach (var table in request.AllTables)
+            foreach (var table in request.Tables)
             {
                 exportTables.Add(GenerateTable(table, request.DataRowCount));
             }
@@ -30,7 +30,7 @@ namespace GenericTestDataCreator
             ExportTable exportTable = new() { Name = importTable.Name };
             List<string> columnNames = new();
 
-            foreach (var column in importTable.Columns.Where(c => c.IsGenerated!= true))
+            foreach (var column in importTable.Columns.Where(c => c.IsIdentity != true && c.IsComputed != true))
             {
                 columnNames.Add(column.Name);
             }
@@ -42,7 +42,7 @@ namespace GenericTestDataCreator
                 exportTable.Columns.Add(new() { Name = columnName });
             }
 
-            foreach (var column in importTable.Columns.Where(c => c.IsGenerated))
+            foreach (var column in importTable.Columns.Where(c => c.IsIdentity != true && c.IsComputed != true))
             {
                 if (column.ForeignKeyInfo != null)
                 {
@@ -119,7 +119,7 @@ namespace GenericTestDataCreator
         {
             string value = string.Empty;
 
-            if (column.IsGenerated)
+            if (column.IsComputed || column.IsIdentity)
             {
                 return null;
 
