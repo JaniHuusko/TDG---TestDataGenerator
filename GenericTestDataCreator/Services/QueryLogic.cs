@@ -1,21 +1,13 @@
-﻿using System.Data;
+﻿using GenericTestDataCreator.Models;
 using System.Data.SqlClient;
-using GenericTestDataCreator.Models;
 
-namespace GenericTestDataCreator.Logic
+namespace GenericTestDataCreator.Services
 {
     public class QueryLogic
     {
-        private DataGenerationLogic DataGenerationLogic { get; set; }
-
-        public QueryLogic(DataGenerationLogic dataGenerationLogic)
+        public static DataGenerationRequest GetDatabaseDetails(string connectionString)
         {
-            DataGenerationLogic = dataGenerationLogic;
-        }
-
-        public static List<ImportTable> GetTables(string connectionString)
-        {
-            List<ImportTable> tables = new();
+            DataGenerationRequest request = new() { ConnectionString = connectionString };
             using SqlConnection connection = new(connectionString);
 
             // first connection in try catch.
@@ -28,59 +20,47 @@ namespace GenericTestDataCreator.Logic
 
                 throw new Exception("Connection string is not valid.");
             }
-
-            foreach (var table in GetAllTableNamesFromDatabase(connectionString))
+            foreach (var table in GetAllTableNamesFromDatabase(connection))
             {
                 using SqlCommand count = new($"SELECT COUNT(*) FROM {table}", connection);
-                tables.Add( new ImportTable { Name = table, CurrentDataRowCount = (int)count.ExecuteScalar() });
+                var importTable = new ImportTable
+                {
+                    Name = table,
+                    CurrentDataRowCount = (int)count.ExecuteScalar()
+                };
+                importTable.Columns = new List<ImportColumn>(GetColumnModels(importTable, connection));
+                request.AllTables.Add(importTable);
             }
             connection.Close();
-            return tables;
+            
+            request.AllTables = GetForeignKeyInfo(request);
+
+            if (request.AllTables.Count > 1)
+            {
+                request.AllTables = SortTables(request.AllTables);
+            }
+
+            return request;
         }
 
-        public List<ExportTable> CreateRows(DataGenerationRequest request)
+        public static List<ImportColumn> GetColumnModels(ImportTable importTable, SqlConnection connection)
         {
-            if (request.ImportTable != null)
-            {
-                request.Tables = new List<ImportTable>
-                {
-                    request.ImportTable
-                };
-            }
 
-            foreach (var table in request.Tables)
-            {
-                table.Columns = GetColumnModels(table, request.ConnectionString);
-            }
-
-            request.Tables = GetForeignKeyInfo(request);
-
-            if (request.Tables.Count > 1)
-            {
-                request.Tables = SortTables(request.Tables);
-            }
-
-            return DataGenerationLogic.GenerateData(request);
-        }
-
-        public static List<ImportColumn> GetColumnModels(ImportTable importTable, string connectionString)
-        {
-            using SqlConnection connection = new(connectionString);
-            connection.Open();
-            using (SqlCommand command = new(@"SELECT TAB.name AS TableName, 
-                                            TAB.object_id AS ObjectID, 
-                                            COL.name AS ColumnName, 
-                                            TYP.name AS DataTypeName, 
-                                            COL.max_length AS MaxLength,
-                                            COL.is_nullable AS IsNullable, 
-                                            COL.is_computed AS IsComputed,
-											COL.is_identity AS IsIdentity
+            using (SqlCommand command = new(@"SELECT TAB.name as table_name, 
+                                            COL.name AS column_name, 
+                                            TYP.name AS data_type_name, 
+                                            COL.max_length,
+                                            COL.is_nullable, 
+                                            COL.is_computed,
+											COL.is_identity,
+											COL.precision,
+											COL.scale
                                             FROM sys.columns COL
                                             INNER JOIN sys.tables TAB
                                             On COL.object_id = TAB.object_id
                                             INNER JOIN sys.types TYP
                                             ON TYP.user_type_id = COL.user_type_id
-                                            WHERE TAB.name = @tableName", connection))
+											Where TAB.name = @tableName", connection))
             {
                 command.Parameters.AddWithValue("@tableName", importTable.Name);
                 using SqlDataReader reader = command.ExecuteReader();
@@ -88,21 +68,38 @@ namespace GenericTestDataCreator.Logic
                 {
                     var column = new ImportColumn
                     {
-                        Name = (string)reader["ColumnName"],
-                        MaxLength = Convert.ToInt32(reader["MaxLength"]),
-                        IsComputed = (bool)reader["IsComputed"],
-                        IsNullable = (bool)reader["IsNullable"],
-                        Type = (string)reader["DataTypeName"],
-                        IsIdentity = (bool)reader["IsIdentity"]
+                        Name = (string)reader["column_name"],
+                        MaxLength = Convert.ToInt32(reader["max_length"]),
+                        IsGenerated = (bool)reader["is_computed"] ? (bool)reader["is_computed"] : (bool)reader["is_identity"],
+                        IsNullable = (bool)reader["is_nullable"],
+                        Type = (string)reader["data_type_name"],
+                        NumericPrecision = (byte)reader["precision"],
+                        NumericScale = (byte)reader["scale"],
+                        
                     };
-
                     importTable.Columns.Add(column);
                 }
             }
-            connection.Close();
             return importTable.Columns;
         }
 
+        private static List<string> GetAllTableNamesFromDatabase(SqlConnection connection)
+        {
+            List<string> tableNames = new();
+
+            using (SqlCommand command = new(@"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES
+                                              WHERE TABLE_NAME != 'sysdiagrams' AND TABLE_NAME != 'database_firewall_rules'", connection))
+            {
+                using SqlDataReader reader = command.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    string tableName = (string)reader["TABLE_NAME"];
+                    tableNames.Add((string)reader["TABLE_NAME"]);
+                }
+            }
+            return tableNames;
+        }
         private static List<ImportTable> GetForeignKeyInfo(DataGenerationRequest request)
         {
             using SqlConnection connection = new(request.ConnectionString);
@@ -128,46 +125,17 @@ namespace GenericTestDataCreator.Logic
             using SqlDataReader reader = command2.ExecuteReader();
             while (reader.Read())
             {
-                if (request.Tables.Where(t => t.Name == (string)reader["FK_TABLE_NAME"]).FirstOrDefault() != null)
+                if (request.AllTables.Where(t => t.Name == (string)reader["FK_TABLE_NAME"]).FirstOrDefault() != null)
                 {
-                    var table = request.Tables.Where(t => t.Name == (string)reader["FK_TABLE_NAME"]).First();
+                    var table = request.AllTables.Where(t => t.Name == (string)reader["FK_TABLE_NAME"]).First();
                     table.ForeignKeyCount++;
                     var column = table.Columns.Where(c => c.Name == (string)reader["FK_COLUMN_NAME"]).First();
                     column.ForeignKeyInfo = new ForeignKeyInfo { TableName = (string)reader["UQ_TABLE_NAME"], ColumnName = (string)reader["UQ_COLUMN_NAME"] };
                 }
             }
             connection.Close();
-            return request.Tables;
+            return request.AllTables;
         }
-
-        private static List<string> GetAllTableNamesFromDatabase(string connectionString)
-        {
-            List<string> tableNames = new();
-            using (SqlConnection connection = new(connectionString))
-            {
-                connection.Open();
-                using (SqlCommand command = new("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES", connection))
-                {
-                    using SqlDataReader reader = command.ExecuteReader();
-
-                    while (reader.Read())
-                    {
-                        string tableName = (string)reader["TABLE_NAME"];
-
-                        /* instead of these checks, should this be done by checking the type of the column on the query, because there might
-                        be even more tables appearing from the system ro azure at some point if you add things to your database or is there 
-                        that possibility? */
-                        if (tableName != "database_firewall_rules" && tableName != "sysdiagrams")
-                        {
-                            tableNames.Add((string)reader["TABLE_NAME"]);
-                        }
-                    }
-                }
-                connection.Close();
-            }
-            return tableNames;
-        }
-
         private static List<ImportTable> SortTables(List<ImportTable> tables)
         {
             tables = tables.OrderBy(t => t.ForeignKeyCount).ToList();
