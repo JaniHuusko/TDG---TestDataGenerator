@@ -12,7 +12,7 @@ namespace GenericTestDataCreator.Models
         public string ConnectionString { get; set; } = null!;
         public int? DataRowCount { get; set; }
         public int PermutationCount { get; set; }
-        public List<PermutationConfiguration> PermutationConfiguration { get; set; } = new List<PermutationConfiguration>();
+        public PermutationConfiguration PermutationConfiguration { get; set; } = new();
         public List<ImportTable> AllTables { get; set; } = new List<ImportTable>();
         public List<ImportTable> SelectedTables { get; set; } = new List<ImportTable>();
     }

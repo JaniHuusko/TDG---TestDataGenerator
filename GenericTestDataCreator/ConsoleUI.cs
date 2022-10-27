@@ -51,13 +51,15 @@ namespace GenericTestDataCreator
                     request = QueryLogic.GetDatabaseDetails(connectionString);
                 }
 
+                Console.WriteLine("Current permutation count = " + PermutationLogic.GetPermutationCount(request));
+
                 Console.WriteLine("Current tables:");
                 foreach (var table in request.AllTables)
                 {
                     Console.WriteLine($"\t{table.Name} {table.CurrentDataRowCount}");
                     foreach (var column in table.Columns)
-                    {
-                        Console.WriteLine($"\t\t{column.Name}\t{column.Type}\t{column.MaxLength}");
+                    {   
+                        Console.WriteLine($"\t\t{column.Name}\t{column.Type}\t{column.MaxLength}\t{column.PermutationCount}\t{column.Id}");
                     }
                 }
 

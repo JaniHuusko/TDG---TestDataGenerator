@@ -1,7 +1,7 @@
-﻿using GenericTestDataCreator.Models;
-using System.Text;
+﻿using System.Text;
+using TestDataGeneratorAPI.Models;
 
-namespace GenericTestDataCreator
+namespace TestDataGeneratorAPI.Services
 {
     public class DataGenerationLogic
     {
@@ -21,7 +21,7 @@ namespace GenericTestDataCreator
         {
             List<ExportTable> exportTables = new();
 
-            foreach (var table in request.AllTables)
+            foreach (var table in request.Tables)
             {
                 exportTables.Add(GenerateTable(table, request.DataRowCount));
             }
@@ -34,7 +34,7 @@ namespace GenericTestDataCreator
             ExportTable exportTable = new() { Name = importTable.Name };
             List<string> columnNames = new();
 
-            foreach (var column in importTable.Columns.Where(c => c.IsGenerated!= true))
+            foreach (var column in importTable.Columns.Where(c => c.IsGenerated != true))
             {
                 columnNames.Add(column.Name);
             }
@@ -179,7 +179,7 @@ namespace GenericTestDataCreator
                 default:
                     break;
             }
-            
+
             if (randomIntegerPool == 1) value = random.Next(1, 99).ToString();
             if (randomIntegerPool == 2) value = random.Next(1, 32767).ToString();
             if (randomIntegerPool == 3) value = random.Next(1, 8388607).ToString();
@@ -214,7 +214,7 @@ namespace GenericTestDataCreator
                     default:
                         break;
                 }
-                
+
                 value = bigInteger.ToString();
 
                 return value;
@@ -243,8 +243,7 @@ namespace GenericTestDataCreator
                 case "mediumint": randomIntPool = random.Next(1, 3); break;
                 case "int": randomIntPool = random.Next(1, 4); break;
                 case "bigint": randomIntPool = random.Next(1, 5); break;
-                default:
-                    break;
+                default: break;
             }
 
             if (randomIntPool == 1) value = random.Next(1, 127).ToString();
@@ -270,7 +269,7 @@ namespace GenericTestDataCreator
                 maxLength = column.MaxLength;
             }
 
-            
+
 
             if (longString == "Longest string ")
             {
@@ -295,34 +294,16 @@ namespace GenericTestDataCreator
 
                 switch (maxLength)
                 {
-                    case < 20:
-                        break;
-                    case < 50:
-                        randomStringPool = random.Next(1, 2);
-                        break;
-                    case < 100:
-                        randomStringPool = random.Next(1, 3);
-                        break;
-                    case < 200:
-                        randomStringPool = random.Next(1, 4);
-                        break;
-                    case 500:
-                        randomStringPool = random.Next(1, 5);
-                        break;
-                    case 1000:
-                        randomStringPool = random.Next(1, 6);
-                        break;
-                    case 2000:
-                        randomStringPool = random.Next(1, 7);
-                        break;
-                    case 4000:
-                        randomStringPool = random.Next(1, 8);
-                        break;
-                    case 8000:
-                        randomStringPool = random.Next(1, 9);
-                        break;
-                    default:
-                        break;
+                    case < 20: break;
+                    case < 50: randomStringPool = random.Next(1, 2); break;
+                    case < 100: randomStringPool = random.Next(1, 3); break;
+                    case < 200: randomStringPool = random.Next(1, 4); break;
+                    case < 500: randomStringPool = random.Next(1, 5); break;
+                    case < 1000: randomStringPool = random.Next(1, 6); break;
+                    case < 2000: randomStringPool = random.Next(1, 7); break;
+                    case < 4000: randomStringPool = random.Next(1, 8); break;
+                    case < 8001: randomStringPool = random.Next(1, 9); break;
+                    default: break;
                 }
 
                 if (randomStringPool == 1) value = GenerateRandomString(1, 4, 1, 1, 1);

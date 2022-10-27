@@ -1,4 +1,4 @@
-﻿namespace GenericTestDataCreator.Models
+﻿namespace TestDataGeneratorAPI.Models
 {
     public class ImportTable
     {

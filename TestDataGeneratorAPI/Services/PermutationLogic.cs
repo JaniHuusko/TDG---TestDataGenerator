@@ -1,23 +1,21 @@
-﻿using GenericTestDataCreator.Models;
+﻿using TestDataGeneratorAPI.Models;
 
-namespace GenericTestDataCreator.Logic
+namespace TestDataGeneratorAPI.Services
 {
     public class PermutationLogic
     {
-        public static int GetPermutationCount(DataGenerationRequest request, List<ColumnConfiguration<T>> configuration)
+        public static int GetPermutationCount(DataGenerationRequest request)
         {
             int permutationCount = 0;
             List<int> tablePermutationCounts = new();
-            
 
-            if (!request.SelectedTables.Any() && !request.AllTables.Any())
+
+            if (!request.Tables.Any())
             {
                 return permutationCount;
             }
 
-            var tables = request.SelectedTables.Any() ? request.SelectedTables : request.AllTables;
-
-            foreach (var table in tables)
+            foreach (var table in request.Tables)
             {
                 List<int> columnPermutationCounts = new();
                 foreach (var column in table.Columns)

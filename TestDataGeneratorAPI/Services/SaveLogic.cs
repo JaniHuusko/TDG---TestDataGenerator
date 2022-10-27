@@ -1,10 +1,9 @@
-﻿using GenericTestDataCreator.Models;
-using GenericTestDataCreator.Services;
-using System.Data;
+﻿using System.Data;
 using System.Data.SqlClient;
 using System.Text;
+using TestDataGeneratorAPI.Models;
 
-namespace GenericTestDataCreator.Logic
+namespace TestDataGeneratorAPI.Services
 {
     public class SaveLogic
     {
@@ -40,7 +39,7 @@ namespace GenericTestDataCreator.Logic
             }
         }
 
-        
+
         private static void SaveStatementsToDataBase(IEnumerable<string> sqlStatements, string connectionString)
         {
             using SqlConnection connection = new(connectionString);
